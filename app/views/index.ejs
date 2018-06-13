@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title><%= title %></title>
+	<link rel="shortcut icon" href="https://www.quizlet.com/a/i/favicon.MDra.ico">
+	<link rel="stylesheet" type="text/css" href="/socket_games/assets/bootstrap/bootstrap.css">
+	<script type="text/javascript" src="/socket_games/assets/jquery/jquery-1.12.4.min.js"></script>
+	<script type="text/javascript" src="/socket_games/assets/socket.io/socket.io.js"></script>
+	<script type="text/javascript" src="/socket_games/game.js"></script>
+	<link rel="stylesheet" type="text/css" href="/socket_games/game.css">
+	<%- include(views+'/head.html') %>
+</head>
+<body>
+	<div id="page">
+		<div id="welcome" class="bubble" hidden>
+			<div>
+				Welcome to <%= title %>!
+			</div>
+			<div>
+				<p>Enter your name to get started.</p>
+			</div>
+			<form id="register_form">
+				Name: <input id="name_input" type="text">
+				Room Name: <input id="room_input" type="text">
+				<input disabled type="submit">
+			</form>
+		</div>
+		<div id="lobby" class="bubble" hidden>
+			<button id="lobby_host" hidden>Start Game</button>
+			<p id="lobby_wait" hidden>Waiting for host to start game...</p>
+			<div>
+				<p>Players:</p>
+				<div id="lobby_players" class="bubble inline"></div>
+			</div>
+		</div>
+		<div id="game" hidden>
+			<div id="turn_background"></div>
+			<div id="game_container" class="flex bubble">
+				<div id="state">
+				<%- include(views+'/index.html') %>
+				</div>
+				<div id="log_container" class="bubble">
+					<p>Log:</p>
+					<div id="log"></div>
+				</div>
+			</div>
+		</div>
+	</div>
+</body>
+</html>
