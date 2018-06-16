@@ -1,0 +1,6 @@
+[submodule "app/routes/snatch"]
+	path = app/routes/snatch
+	url = https://github.com/dcep93/snatch
+[submodule "app/routes/decrypto"]
+	path = app/routes/decrypto
+	url = https://github.com/dcep93/decrypto
