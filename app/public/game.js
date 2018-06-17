@@ -160,9 +160,9 @@ function room(data) {
 					name: data.name,
 					present: state.currentPlayer === undefined,
 					time: 0,
+					state: newState(),
 				};
 				state.players[data.index] = player;
-				playerJoin(player);
 				sendState('joined', data.name);
 			}
 		}
@@ -412,12 +412,6 @@ function update() {}
 // override me
 function newState() {
 	return {};
-}
-
-function playerJoin(player) {
-	if (state.currentPlayer !== undefined) {
-		player.state = newState();
-	}
 }
 
 main();
