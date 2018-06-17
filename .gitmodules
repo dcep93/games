@@ -4,3 +4,6 @@
 [submodule "app/routes/decrypto"]
 	path = app/routes/decrypto
 	url = https://github.com/dcep93/decrypto
+[submodule "app/routes/spy"]
+	path = app/routes/spy
+	url = https://github.com/dcep93/spy.git
