@@ -121,7 +121,7 @@ function connect(client) {
 						};
 						if (!room) {
 							obj.admin = 0;
-							room = { nextId: 1, clients: {} };
+							room = { nextId: 1, clients: {}, state: {} };
 							setRoom(roomInfo, room);
 						}
 						if (room.clients[clientId] !== undefined) {
