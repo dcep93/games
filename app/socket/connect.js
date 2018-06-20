@@ -195,7 +195,7 @@ function connect(client) {
 			data.id = room.nextId++;
 			client.to(roomString).broadcast.emit('message', data);
 			client.send(data);
-			room.state = data.state;
+			if (data.state) room.state = data.state;
 		}
 	});
 }
