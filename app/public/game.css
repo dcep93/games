@@ -32,16 +32,17 @@
 	margin: 10px;
 }
 
-#game_container {
+#room {
 	background-color: white;
 }
 
-#state {
+#area {
 	min-width: 65%;
 	flex-grow: 1;
 }
 
 #log_container {
+	visibility: hidden;
 	flex-basis: 30%;
 	flex-grow: 1;
 	display: flex;

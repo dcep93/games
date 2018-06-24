@@ -1,0 +1,27 @@
+<body>
+	<div id="page">
+		<div id="welcome" class="bubble" hidden>
+			<div>
+				Welcome to <%= title %>!
+			</div>
+			<div>
+				<p>Enter your name to get started.</p>
+			</div>
+			<form id="register_form">
+				Name: <input id="name_input" type="text">
+				Room Name: <input id="room_input" type="text">
+				<input disabled type="submit">
+			</form>
+		</div>
+		<div id="lobby" class="bubble" hidden>
+			<button id="lobby_host" hidden>Start Game</button>
+			<p id="lobby_wait" hidden>Waiting for host to start game...</p>
+			<div>
+				<p>Players:</p>
+				<div id="lobby_players" class="bubble inline"></div>
+			</div>
+		</div>
+		<div id="game" hidden>
+			<div id="turn_background"></div>
+			<div id="game_container" class="flex bubble">
+				<div id="state">

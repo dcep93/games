@@ -26,13 +26,13 @@ function connect(client) {
 	var clientId; // int
 	var roomInfo; // {room: string, game: string}
 	var roomString; // string
-	client.on('register', function(data) {
+	client.on('sg_register', function(data) {
 		clientId =
 			data.iter === crypt.iter ? crypt.decrypt(data.id) : undefined;
 		roomInfo = clientToRoom[clientId];
 		var room = getRoom(roomInfo);
 		console.log('register', clientId, roomInfo, data, room !== undefined);
-		if (room !== undefined) {
+		if (room !== undefined && room.state !== undefined) {
 			roomString = JSON.stringify(roomInfo);
 			var clientO = room.clients[clientId];
 			clientO.client = client;
@@ -40,6 +40,7 @@ function connect(client) {
 			client.send({
 				endpoint: 'register',
 				room: roomInfo.room,
+				admin: room.admin,
 				state: room.state,
 				index: clientO.index,
 				original: room.original,
@@ -72,27 +73,37 @@ function connect(client) {
 		var room = getRoom(roomInfo);
 		if (room === undefined) return false;
 		var c = kick(clientId, forLeave);
-		var obj = { endpoint: 'room', left: c.index };
-		if (c.index === room.state.admin) {
+		setTimeout(function() {
+			checkEmptyRoom(roomInfo);
+		}, 3000);
+		if (Object.keys(room.clients).length === 1) return true;
+		var client;
+		if (c.index === room.admin) {
 			for (var adminId in room.clients) {
-				clientO = room.clients[adminId];
+				var clientO = room.clients[adminId];
 				if (clientO.client !== undefined) {
-					clientO.client.send(obj);
+					room.admin = clientO.index;
+					client = clientO.client;
 					break;
 				}
 			}
 		} else {
-			client.to(roomString).broadcast.emit('message', obj);
+			for (var adminId in room.clients) {
+				var clientO = room.clients[adminId];
+				if (room.admin === clientO.index) {
+					client = clientO.client;
+					break;
+				}
+			}
 		}
-		setTimeout(function() {
-			checkEmptyRoom(roomInfo);
-		}, 3000);
+		if (client === undefined) return false;
+		client.send({ endpoint: 'room', left: c.index });
 		return true;
 	}
 	function kick(kickId, forKick) {
 		var clientO = getRoom(roomInfo).clients[kickId];
 		if (forKick) {
-			console.log('kick', clientId, roomInfo, clientO !== undefined);
+			console.log('kick', clientId, roomInfo);
 			delete clientToRoom[kickId];
 			if (clientO.client !== undefined) {
 				clientO.client.send({ endpoint: 'initState' });
@@ -102,12 +113,12 @@ function connect(client) {
 		if (clientO) clientO.client = undefined;
 		return clientO;
 	}
-	client.on('room', function(data) {
+	client.on('sg_room', function(data) {
 		if (data.endpoint === 'register') {
 			if (clientToRoom[clientId] === undefined) {
 				if (data.room !== undefined && data.game !== undefined) {
 					var room = getRoom(data);
-					if (room && room.state.closed) {
+					if (room && room.state && room.state.closed) {
 						client.send({ endpoint: 'room', room: false });
 						return;
 					} else {
@@ -121,7 +132,12 @@ function connect(client) {
 						};
 						if (!room) {
 							obj.admin = 0;
-							room = { nextId: 1, clients: {}, state: {} };
+							room = {
+								nextId: 1,
+								clients: {},
+								admin: obj.admin,
+								state: {},
+							};
 							setRoom(roomInfo, room);
 						}
 						if (room.clients[clientId] !== undefined) {
@@ -151,13 +167,22 @@ function connect(client) {
 		} else if (data.endpoint === 'kick') {
 			var room = getRoom(roomInfo);
 			if (room !== undefined) {
-				for (var kickId in room.clients) {
-					var clientO = room.clients[kickId];
+				var kickId;
+				var isAdmin = false;
+				for (var clientId in room.clients) {
+					var clientO = room.clients[clientId];
 					if (clientO.index === data.index) {
-						kick(kickId, true);
-						client.send({ endpoint: 'room', kicked: data.index });
-						return;
+						kickId = clientId;
+					} else if (clientO.index === room.admin) {
+						isAdmin = true;
 					}
+				}
+				if (kickId !== undefined && isAdmin) {
+					kick(kickId, true);
+					client.send({
+						endpoint: 'room',
+						kicked: data.index,
+					});
 				}
 				console.log('room', 'no client matched', data, room.clients);
 			} else {
@@ -169,7 +194,7 @@ function connect(client) {
 			console.log('room', 'endpoint', data);
 		}
 	});
-	client.on('refresh', function(data) {
+	client.on('sg_refresh', function(data) {
 		if (data.iter !== crypt.iter) return;
 		if (data.game === undefined || data.room === undefined) return;
 		roomInfo = { game: data.game, room: data.room };
@@ -192,6 +217,7 @@ function connect(client) {
 	client.on('message', function(data) {
 		var room = getRoom(roomInfo);
 		if (room !== undefined) {
+			data.admin = room.admin;
 			data.id = room.nextId++;
 			client.to(roomString).broadcast.emit('message', data);
 			client.send(data);
