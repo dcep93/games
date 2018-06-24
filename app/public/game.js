@@ -380,6 +380,7 @@ function prepare() {
 }
 
 function basicUpdate() {
+	if (myIndex >= state.players.length) refresh();
 	$('#door').text(state.closed ? 'Open' : 'Close');
 	$('#turn_background')[isMyTurn() ? 'addClass' : 'removeClass'](
 		'active_background'
