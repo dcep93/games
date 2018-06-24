@@ -124,7 +124,7 @@ function connect(client) {
 	client.on('sg_room', function(data) {
 		if (clientId === undefined) return console.log('undefined clientId');
 		if (data.endpoint === 'register') {
-			if (clientToRoom[clientId] !== undefined) return console.log('already registered', clientId);
+			if (clientToRoom[clientId] !== undefined) return console.log('already registered', clientId, clientToRoom[clientId]);
 			if (data.room === undefined || data.game === undefined) return console.log('bad data', data);
 			var room = getRoom(data);
 			if (room !== undefined && room.state.closed) {
@@ -140,15 +140,15 @@ function connect(client) {
 				room: data.room,
 			};
 			if (!room) {
-				obj.admin = 0;
 				room = {
 					nextId: 1,
 					clients: {},
-					admin: obj.admin,
+					admin: 0,
 					state: {},
 				};
 				setRoom(roomInfo, room);
 			}
+			obj.admin = room.admin;
 			var clientO = room.clients[clientId];
 			if (clientO !== undefined) {
 				obj.index = clientO.index;

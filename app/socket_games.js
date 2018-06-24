@@ -10,13 +10,24 @@ var app = express.Router();
 
 app.use(socket);
 
+function checkPassphrase(passphrase) {
+	return socket.passphrase !== undefined && socket.passphrase === passphrase;
+}
+
 app.use('/socket_games', express.static(path.join(__dirname, 'public')));
 app.use('/pull', function(req, res, next) {
-	if (
-		socket.passphrase !== undefined &&
-		socket.passphrase === req.query.passphrase
-	) {
+	if (checkPassphrase(req.query.passphrase)) {
 		exec('pull', path.join(__dirname, 'etc', 'pull.sh'), res);
+	} else {
+		next();
+	}
+});
+
+app.use('/rs', function(req, res, next) {
+	if (checkPassphrase(req.query.passphrase)) {
+		process.once('SIGUSR2', function () {
+			process.kill(process.pid, 'SIGUSR2');
+		});
 	} else {
 		next();
 	}

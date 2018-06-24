@@ -195,19 +195,6 @@ function room(data) {
 	}
 }
 
-function lobby() {
-	$('#lobby_players').empty();
-	state.players.forEach(function(player, index) {
-		$('<p>')
-			.attr('index', index)
-			.addClass('player')
-			.text(player.name)
-			.appendTo('#lobby_players');
-	});
-	show('#lobby');
-	$(isAdmin() ? '#lobby_host' : '#lobby_wait').show();
-}
-
 function kick() {
 	var index = $(this).index();
 	if (index === myIndex) return;
@@ -215,6 +202,12 @@ function kick() {
 		endpoint: 'kick',
 		index: index,
 	});
+}
+
+function lobby() {
+	$('#global_controls').appendTo('#lobby_controls_div');
+	show('#lobby');
+	show(isAdmin() ? '#lobby_host' : '#lobby_wait');
 }
 
 function stateF(data) {
@@ -226,24 +219,36 @@ function stateF(data) {
 		race(data);
 		return;
 	}
-	show('#room');
-	$('#log_container').show();
+	show('#room_container');
 	adminIndex = data.admin;
 	state = data.state;
 	state.id = data.id;
 	logState({ id: data.id, player: data.player, message: data.message });
 
+	$('#players').empty();
+	state.players.forEach(function(player, index) {
+		if (player.present !== null) {
+			$('<p>')
+				.attr('index', index)
+				.addClass('player')
+				.text(player.name)
+				.appendTo('#players');
+		}
+	});
+	if (isAdmin()) $('.player').dblclick(kick);
+
+	basicUpdate();
+
 	if (state.currentPlayer === undefined) {
 		lobby();
-	} else {
-		show('#game');
-		var currentPlayer = current();
-		if (currentPlayer !== undefined)
-			$('#current_player').text(currentPlayer.name);
-		basicUpdate();
-		update();
+		return;
 	}
-	if (isAdmin()) $('.player').dblclick(kick);
+	$('#global_controls').appendTo('#game_controls_div');
+	show('#game');
+	var currentPlayer = current();
+	if (currentPlayer !== undefined)
+		$('#current_player').text(currentPlayer.name);
+	update();
 }
 
 function race(data) {
@@ -328,6 +333,9 @@ function reconnect(data) {
 }
 
 function isMyTurn() {
+	if (state.currentPlayer === undefined) {
+		return isAdmin();
+	}
 	return myIndex === state.currentPlayer;
 }
 
