@@ -171,10 +171,10 @@ function connect(client) {
 			if (room === undefined) return console.log('no room', roomInfo);
 			var kickId;
 			var isAdmin = false;
-			for (var clientId in room.clients) {
-				var clientO = room.clients[clientId];
+			for (var id in room.clients) {
+				var clientO = room.clients[id];
 				if (clientO.index === data.index) {
-					kickId = clientId;
+					kickId = id;
 				} else if (clientO.index === room.admin) {
 					isAdmin = true;
 				}

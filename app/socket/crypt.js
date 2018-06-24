@@ -1,5 +1,7 @@
 var crypto = require('crypto');
 var randomstring = require('randomstring');
+var iter = randomstring.generate();
+console.log('crypt iter:', iter);
 
 var algorithm = 'aes-256-ctr';
 var password = randomstring.generate();
@@ -22,5 +24,5 @@ function decrypt(text) {
 module.exports = {
 	encrypt: encrypt,
 	decrypt: decrypt,
-	iter: randomstring.generate(),
+	iter: iter,
 };
