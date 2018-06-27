@@ -59,6 +59,14 @@ router.register = function(req, res, game) {
 	res.send({ port: port, game: game, id: id, iter: crypt.iter });
 };
 
-router.passphrase = passphrase;
+router.protect = function(f) {
+	return function(req, res, next) {
+		if (passphrase !== undefined && req.query.passphrase === passphrase) {
+			f(res);
+		} else {
+			next();
+		}
+	};
+};
 
 module.exports = router;

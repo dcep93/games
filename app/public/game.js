@@ -379,7 +379,12 @@ var endpoints = {
 	state: stateF,
 	reconnect: reconnect,
 	refresh: refresh,
+	alert: alertF,
 };
+
+function alertF(data) {
+	alert(data.alert);
+}
 
 // override me
 function prepare() {
