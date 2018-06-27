@@ -7,3 +7,6 @@
 [submodule "app/routes/spy"]
 	path = app/routes/spy
 	url = https://github.com/dcep93/spy.git
+[submodule "app/routes/qorder"]
+	path = app/routes/qorder
+	url = https://github.com/dcep93/qorder.git
