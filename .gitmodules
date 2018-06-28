@@ -7,3 +7,6 @@
 [submodule "app/routes/spy"]
 	path = app/routes/spy
 	url = https://github.com/dcep93/spy.git
+[submodule "app/routes/timeline"]
+	path = app/routes/timeline
+	url = https://github.com/dcep93/timeline.git
