@@ -141,7 +141,7 @@ function connect(client) {
 			};
 			if (!room) {
 				room = {
-					nextId: 1,
+					nextId: 0,
 					clients: {},
 					admin: 0,
 					state: {},
@@ -217,10 +217,17 @@ function connect(client) {
 		var room = getRoom(roomInfo);
 		if (room !== undefined) {
 			data.admin = room.admin;
-			data.id = room.nextId++;
+			data.id = ++room.nextId;
 			client.to(roomString).broadcast.emit('message', data);
 			client.send(data);
 			if (data.state) room.state = data.state;
+		}
+	});
+	client.on('sg_pull', function(data) {
+		var room = getRoom(roomInfo);
+		if (room !== undefined) {
+			var state = { endpoint: 'pull', admin: room.admin, id: room.nextId, state: room.state };
+			client.send(state);
 		}
 	});
 }

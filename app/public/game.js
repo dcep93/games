@@ -11,10 +11,15 @@ var state;
 // 	players: [], // [{name: string, state: object, time: int}]
 // 	currentPlayer: undefined, // ?int
 // };
+var debug;
 
 var tick = 100;
 
 $(document).ready(function() {
+	$('#door').click(door);
+	$('#leave').click(leave);
+	$('#pull').click(function() { socket.emit('sg_pull', {}) });
+	$('#push').click(push);
 	$('input[type=submit]').prop('disabled', false);
 	$('#register_form').submit(apply);
 	$('#lobby_host').click(prepare);
@@ -137,6 +142,7 @@ function receive(data) {
 		console.log(endpoint, data.id);
 		f(data);
 	} else {
+		debug = $.extend(null, {}, data);
 		alert('unknown endpoint: ' + endpoint);
 	}
 }
@@ -198,6 +204,8 @@ function room(data) {
 function kick() {
 	var index = $(this).index();
 	if (index === myIndex) return;
+	var player = state.players[index];
+	if (confirm('Are you sure you want to kick ' + player.name + '?'))
 	socket.emit('sg_room', {
 		endpoint: 'kick',
 		index: index,
@@ -210,15 +218,41 @@ function lobby() {
 	show(isAdmin() ? '#lobby_host' : '#lobby_wait');
 }
 
+function pull(data) {
+	if (stateHistory.length === 0) {
+		data.message = 'pulled from scratch';
+	} else {
+		var lastId = stateHistory[0].id;
+		data.message = 'pull [' + lastId + '] - ';
+		if (data.id > lastId) {
+			data.message += 'fixed';
+		} else if (data.id < lastId) {
+			debug = $.extend(null, {}, data);
+			data.message += 'uh thats weird...';
+		} else {
+			return alert('already up to date');
+		}
+	}
+	stateHelper(data);
+}
+
+function push() {
+	sendState('push');
+}
+
 function stateF(data) {
 	if (
 		data.state.id !== undefined &&
 		stateHistory.length !== 0 &&
 		data.state.id < stateHistory[0].id
 	) {
-		race(data);
+		if (isAdmin()) race(data);
 		return;
 	}
+	stateHelper(data);
+}
+
+function stateHelper(data) {
 	show('#room_container');
 	adminIndex = data.admin;
 	state = data.state;
@@ -235,14 +269,11 @@ function stateF(data) {
 				.appendTo('#players');
 		}
 	});
-	if (isAdmin()) $('.player').dblclick(kick);
+	if (isAdmin()) $('.player').click(kick);
 
 	basicUpdate();
 
-	if (state.currentPlayer === undefined) {
-		lobby();
-		return;
-	}
+	if (state.currentPlayer === undefined) return lobby();
 	$('#global_controls').appendTo('#game_controls_div');
 	show('#game');
 	var currentPlayer = current();
@@ -269,19 +300,18 @@ function race(data) {
 		message: message,
 		invalid: invalid,
 	});
-	if (isAdmin()) {
-		for (var i = 0; i < stateHistory.length; i++) {
-			var loadState = stateHistory[i];
-			if (!loadState.invalid) {
-				state = $.extend(true, loadState.state, { id: data.id });
-				sendState(
-					'Race recover: ' + loadState.message,
-					loadState.player
-				);
-				break;
-			}
+	for (var i = 0; i < stateHistory.length; i++) {
+		var loadState = stateHistory[i];
+		if (!loadState.invalid) {
+			state = $.extend(true, loadState.state, { id: data.id });
+			sendState(
+				'Race recover: ' + loadState.message,
+				loadState.player
+			);
+			return;
 		}
 	}
+	alert('Race condition, but no valid state available. This should never happen. Seek shelter.');
 }
 
 function logState(obj) {
@@ -380,6 +410,7 @@ var endpoints = {
 	reconnect: reconnect,
 	refresh: refresh,
 	alert: alertF,
+	pull: pull,
 };
 
 function alertF(data) {
