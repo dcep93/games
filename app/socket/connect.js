@@ -2,7 +2,7 @@ var crypt = require('./crypt');
 
 var emptyRoomTime = 30 * 60 * 1000;
 
-var rooms = {}; // {string: {string: {state: object, nextId: int, clients: {int: {index: int, client: ?Client}}}}}
+var rooms = {}; // {string: {string: {admin: int, state: object, nextId: int, clients: {int: {index: int, client: ?Client}}}}}
 var clientToRoom = {}; // int: {room: string, game: string}
 var updated = new Date();
 
@@ -64,18 +64,29 @@ function connect(client) {
 		if (room !== undefined) {
 			var clientO = room.clients[clientId];
 			if (clientO !== undefined) {
+				var admin = getAdmin(room);
+				if (admin.client === undefined) room.admin = clientO.index;
 				clientO.client = client;
 				client.join(roomString);
 				client.send({
 					endpoint: 'reconnect',
 					state: room.state,
 					index: room.clients[clientId].index,
+					admin: room.admin,
 				});
 				return;
 			}
 		}
 		client.send({ endpoint: 'refresh' });
 	});
+	function getAdmin(room) {
+		for (var id in room.clients) {
+			var clientO = room.clients[id];
+			if (clientO.index === room.admin) {
+				return clientO;
+			}
+		}
+	}
 	function leave(forLeave) {
 		var room = getRoom(roomInfo);
 		if (room === undefined) return console.log('undefined room', roomInfo);
@@ -84,7 +95,10 @@ function connect(client) {
 		setTimeout(function() {
 			checkEmptyRoom(roomInfo);
 		}, emptyRoomTime);
-		if (Object.keys(room.clients).length === 1) return;
+		if (Object.keys(room.clients).length === 1) {
+			room.state.players[room.admin].present = false;
+			return;
+		}
 		var leaveClient;
 		if (c.index === room.admin) {
 			for (var adminId in room.clients) {
@@ -127,11 +141,9 @@ function connect(client) {
 			if (clientToRoom[clientId] !== undefined) return console.log('already registered', clientId, clientToRoom[clientId]);
 			if (data.room === undefined || data.game === undefined) return console.log('bad data', data);
 			var room = getRoom(data);
-			if (room !== undefined && room.state.closed) {
-				client.send({ endpoint: 'room', room: false });
-				return;
-			}
+			if (room !== undefined && room.state.closed) return client.send({ endpoint: 'room', room: false });
 			roomInfo = { room: data.room, game: data.game };
+			console.log('room_register', clientId);
 			clientToRoom[clientId] = roomInfo;
 			roomString = JSON.stringify(roomInfo);
 			var obj = {
@@ -140,21 +152,28 @@ function connect(client) {
 				room: data.room,
 			};
 			if (!room) {
+				obj.index = 0;
 				room = {
 					nextId: 0,
 					clients: {},
-					admin: 0,
+					admin: obj.index,
 					state: {},
 				};
 				setRoom(roomInfo, room);
+			} else {
+				var clientO = room.clients[clientId];
+				if (clientO !== undefined) {
+					obj.index = clientO.index;
+				} else {
+					obj.index = Object.keys(room.clients).length;
+				}
+				var admin = getAdmin(room);
+				if (admin.client === undefined) {
+					room.admin = obj.index;
+					obj.state = room.state;
+				}
 			}
 			obj.admin = room.admin;
-			var clientO = room.clients[clientId];
-			if (clientO !== undefined) {
-				obj.index = clientO.index;
-			} else {
-				obj.index = Object.keys(room.clients).length;
-			}
 			room.clients[clientId] = {
 				index: obj.index,
 				client: client,
@@ -170,17 +189,15 @@ function connect(client) {
 			var room = getRoom(roomInfo);
 			if (room === undefined) return console.log('no room', roomInfo);
 			var kickId;
-			var isAdmin = false;
 			for (var id in room.clients) {
-				var clientO = room.clients[id];
-				if (clientO.index === data.index) {
+				var kickClientO = room.clients[id];
+				if (kickClientO.index === data.index) {
 					kickId = id;
-				} else if (clientO.index === room.admin) {
-					isAdmin = true;
 				}
 			}
-			if (!isAdmin) return console.log('not admin', clientId);
 			if (kickId === undefined) return console.log('no kick matched', data);
+			var admin = getAdmin(room);
+			if (room.clients[clientId].index !== admin.index) return console.log('not admin', clientId);
 			kick(kickId, true);
 			client.send({
 				endpoint: 'room',
@@ -203,6 +220,7 @@ function connect(client) {
 		}
 		clientId = crypt.decrypt(data.id);
 		if (clientId === undefined) return;
+		console.log('refresh', clientId);
 		clientToRoom[clientId] = roomInfo;
 		room.clients[clientId] = { index: data.index };
 		if (data.state !== undefined) {

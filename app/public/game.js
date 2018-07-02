@@ -50,7 +50,7 @@ function register(data) {
 			socket.emit('sg_refresh', obj);
 		});
 	} else if (data.room !== undefined) {
-		state = data.state;
+		if (data.state !== undefined) state = data.state;
 		roomName = data.room;
 		adminIndex = data.admin;
 		myIndex = data.index;
@@ -142,9 +142,12 @@ function receive(data) {
 		console.log(endpoint, data.id);
 		f(data);
 	} else {
-		debug = $.extend(null, {}, data);
 		alert('unknown endpoint: ' + endpoint);
 	}
+}
+
+function setDebug(data) {
+	debug = $.extend(null, {}, data);
 }
 
 function apply() {
@@ -166,6 +169,7 @@ function room(data) {
 		if (data.admin !== undefined) adminIndex = data.admin;
 		myIndex = data.index;
 		roomName = data.room;
+		if (data.state !== undefined) state = data.state;
 	}
 	if (data.name !== undefined) {
 		if (isAdmin()) {
@@ -227,7 +231,6 @@ function pull(data) {
 		if (data.id > lastId) {
 			data.message += 'fixed';
 		} else if (data.id < lastId) {
-			debug = $.extend(null, {}, data);
 			data.message += 'uh thats weird...';
 		} else {
 			return alert('already up to date');
@@ -357,6 +360,7 @@ function restoreHelper(id) {
 
 function reconnect(data) {
 	console.log(data);
+	admin = data.admin;
 	myIndex = data.index;
 	state = data.state;
 	sendState('reconnect');
