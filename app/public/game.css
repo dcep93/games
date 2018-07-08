@@ -74,3 +74,7 @@
 .control_number {
     width: 50px;
 }
+
+.hover_pointer:hover {
+	cursor: pointer;
+}

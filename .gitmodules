@@ -10,3 +10,6 @@
 [submodule "app/routes/timeline"]
 	path = app/routes/timeline
 	url = https://github.com/dcep93/timeline.git
+[submodule "app/routes/skull"]
+	path = app/routes/skull
+	url = https://github.com/dcep93/skull.git
