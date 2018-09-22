@@ -39,9 +39,20 @@ fi
 STARTUP_SCRIPT=$DIR/startup_script.sh
 INDEX=$DIR/app/index.js
 
-ZONE=$(gcloud compute instances list | awk "\$1 == \"$(hostname)\" {print \$2}")
-gcloud compute instances add-metadata $(hostname) --metadata startup-script="bash $STARTUP_SCRIPT $INDEX" --zone=$ZONE
+# server service
+cat <<END > /etc/systemd/system/socket_games.service
+[Unit]
+Description=starts socket_games server
+After=local-fs.target
+Wants=local-fs.target
 
-if [ ! -f /var/log/snatch.log ]; then
-    bash $STARTUP_SCRIPT $INDEX
-fi
+[Service]
+ExecStart=/bin/bash $STARTUP_SCRIPT $INDEX
+Type=simple
+
+[Install]
+WantedBy=multi-user.target
+
+END
+systemctl daemon-reload
+systemctl enable socket_games
