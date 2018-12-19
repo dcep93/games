@@ -56,3 +56,7 @@ WantedBy=multi-user.target
 END
 systemctl daemon-reload
 systemctl enable socket_games
+
+
+iptables -A PREROUTING -t nat -p tcp --dport 80 -j REDIRECT --to-ports 8080
+iptables -A PREROUTING -t nat -p tcp --dport 443 -j REDIRECT --to-ports 8080
