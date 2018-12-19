@@ -3,3 +3,4 @@ node_modules
 cert/
 package-lock.json
 /app/public/words/
+/app/proxies.json
