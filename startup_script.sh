@@ -14,6 +14,6 @@ fi
 
 echo "$(date) startup" | tee -a /var/log/socket_games.log
 
-screen -Dm bash -c "set -x; nodemon --delay 1 $INDEX; exec sh"
+screen -Dm bash -c "set -x; cd $(dirname $INDEX) && nodemon --delay 1 $INDEX; exec sh"
 
 echo "$(date) success" | tee -a $LOG_FILE
