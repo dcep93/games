@@ -3,7 +3,9 @@
 set -e
 set -o pipefail
 
-LOG_FILE=/var/log/socket_games.log
+NAME=socket_games
+
+LOG_FILE=/var/log/$NAME.log
 
 INDEX=$1
 
@@ -12,8 +14,8 @@ if [ -z "$INDEX" ]; then
 	exit 1
 fi
 
-echo "$(date) startup" | tee -a /var/log/socket_games.log
+echo "$(date) startup" | tee -a $LOG_FILE
 
-screen -Dm bash -c "set -x; cd $(dirname $INDEX) && nodemon --delay 1 $INDEX; exec sh"
+screen -S $NAME -Dm bash -c "set -x; cd $(dirname $INDEX) && nodemon --delay 1 $INDEX; exec sh"
 
 echo "$(date) success" | tee -a $LOG_FILE
