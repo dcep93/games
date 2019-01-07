@@ -1,7 +1,6 @@
 var express = require('express');
 var path = require('path');
 var fs = require('fs');
-var ejs = require('ejs');
 var proxy = require('express-http-proxy');
 
 var exec = require('./etc/exec');
