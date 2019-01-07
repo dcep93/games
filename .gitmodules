@@ -13,6 +13,3 @@
 [submodule "app/routes/skull"]
 	path = app/routes/skull
 	url = https://github.com/dcep93/skull.git
-[submodule "app/routes/climb"]
-	path = app/routes/climb
-	url = https://github.com/dcep93/climb.git
