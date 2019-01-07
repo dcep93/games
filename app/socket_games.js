@@ -1,18 +1,9 @@
 var express = require('express');
 var path = require('path');
 var fs = require('fs');
-var proxy = require('express-http-proxy');
 
 var exec = require('./etc/exec');
 var socket = require('./socket/socket');
-
-var proxies;
-try {
-	proxies = require('./proxies.json');
-} catch (e) {
-	if (e.code !== 'MODULE_NOT_FOUND') throw e;
-	proxies = {};
-}
 
 var app = express.Router();
 
@@ -41,11 +32,6 @@ var routes = [];
 for (var game of games) {
 	var index = path.join(__dirname, 'routes', game, 'app', 'index');
 	routes[game] = require(index);
-}
-
-for (var appName in proxies) {
-	var port = proxies[appName];
-	routes[appName] = proxy(`localhost:${port}`);
 }
 
 app.use(function(req, res, next) {
