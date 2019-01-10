@@ -4,3 +4,5 @@ cert/
 package-lock.json
 /app/public/words/
 /app/proxies.json
+env.sh
+
