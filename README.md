@@ -1,4 +1,4 @@
-# Snatch
+# Socket Games
 
 ### install git
 `sudo apt install -y git-all`
