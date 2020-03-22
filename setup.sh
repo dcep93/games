@@ -22,6 +22,9 @@ if [ ! -d $CERT_DIR ]; then
 	echo $SSL_PASSWORD > $CERT_DIR/passphrase.txt
 fi
 
+# install git submodules
+git submodule update --init
+
 # install nodejs
 which node || ( curl -sL https://deb.nodesource.com/setup_8.x | bash - && apt-get install -y nodejs )
 
