@@ -15,6 +15,9 @@ nameservers `carlos.ns.cloudflare.com` and `naya.ns.cloudflare.com`
 ### setup static external ip
 `https://console.cloud.google.com/networking/addresses/list`
 
+### set up firewall to allow port 2096
+`https://console.cloud.google.com/networking/firewalls/list`
+
 ### use static ip for A type content field
 `https://dash.cloudflare.com/a1bc7ea0fb518f09ae19091140583131/somuchcinnamon.com/dns`
 
