@@ -28,6 +28,7 @@ content is static ip
 
 ### wait for ssl cert to be deployed
 edge certificate needs to be active
+sometimes takes 24 hours
 `https://dash.cloudflare.com/a1bc7ea0fb518f09ae19091140583131/somuchcinnamon.com/ssl-tls/edge-certificates`
 
 ### IP tables
