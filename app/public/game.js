@@ -16,13 +16,15 @@ var debug;
 var tick = 100;
 
 $(document).ready(function() {
-	$('#door').click(door);
-	$('#leave').click(leave);
-	$('#pull').click(function() { socket.emit('sg_pull', {}) });
-	$('#push').click(push);
-	$('input[type=submit]').prop('disabled', false);
-	$('#register_form').submit(apply);
-	$('#lobby_host').click(prepare);
+	$("#door").click(door);
+	$("#leave").click(leave);
+	$("#pull").click(function() {
+		socket.emit("sg_pull", {});
+	});
+	$("#push").click(push);
+	$("input[type=submit]").prop("disabled", false);
+	$("#register_form").submit(apply);
+	$("#lobby_host").click(prepare);
 	setInterval(updateTime, tick);
 });
 
@@ -31,8 +33,8 @@ function refresh() {
 }
 
 function leave() {
-	socket.emit('sg_room', {
-		endpoint: 'leave',
+	socket.emit("sg_room", {
+		endpoint: "leave"
 	});
 }
 
@@ -43,11 +45,11 @@ function isAdmin(playerIndex) {
 
 function register(data) {
 	if (myIndex !== undefined) {
-		$.get('socket', undefined, function(data) {
+		$.get("socket", undefined, function(data) {
 			var obj = $.extend(true, { room: roomName, index: myIndex }, data);
 			state.id++;
 			if (isAdmin()) obj.state = state;
-			socket.emit('sg_refresh', obj);
+			socket.emit("sg_refresh", obj);
 		});
 	} else if (data.room !== undefined) {
 		if (data.state !== undefined) state = data.state;
@@ -58,25 +60,25 @@ function register(data) {
 			logState({
 				state: data.original,
 				id: data.original.id,
-				message: 'server restart at ' + data.updated,
+				message: "server restart at " + data.updated
 			});
 		}
 		state.id = data.id;
-		sendState('rejoined');
+		sendState("rejoined");
 	} else {
 		initState(data);
 	}
 }
 
 function initState(data) {
-	if (data) show('#welcome');
-	$('#log').empty();
+	if (data) show("#welcome");
+	$("#log").empty();
 	myIndex = undefined;
 	stateHistory = [];
 	state = {
 		players: [], // [{name: string, state: object}]
 		currentPlayer: undefined, // ?int
-		lastState: undefined, // ?string
+		lastState: undefined // ?string
 	};
 }
 
@@ -94,18 +96,18 @@ function main() {
 
 function connectSocket() {
 	$.holdReady(true);
-	$.get('socket', undefined, function(data) {
+	$.get("socket", undefined, function(data) {
 		gameName = data.game;
-		socket = io(':' + data.port, { secure: true });
-		socket.on('connect', function() {
+		socket = io(":" + data.port, { secure: true });
+		socket.on("connect", function() {
 			$.holdReady(false);
-			console.log('connected');
-			socket.emit('sg_register', data);
+			console.log("connected");
+			socket.emit("sg_register", data);
 		});
-		socket.on('sg_reconnect', function() {
-			console.log('reconnected');
+		socket.on("sg_reconnect", function() {
+			console.log("reconnected");
 		});
-		socket.on('message', receive);
+		socket.on("message", receive);
 	});
 }
 
@@ -125,10 +127,10 @@ function sendState(message, player, extra) {
 		$.extend(
 			true,
 			{
-				endpoint: 'state',
+				endpoint: "state",
 				state: state,
 				player: player,
-				message: message,
+				message: message
 			},
 			extra
 		)
@@ -142,7 +144,7 @@ function receive(data) {
 		console.log(endpoint, data.id);
 		f(data);
 	} else {
-		alert('unknown endpoint: ' + endpoint);
+		alert("unknown endpoint: " + endpoint);
 	}
 }
 
@@ -151,18 +153,18 @@ function setDebug(data) {
 }
 
 function apply() {
-	socket.emit('sg_room', {
-		endpoint: 'register',
-		room: $('#room_input').val(),
-		name: $('#name_input').val(),
-		game: gameName,
+	socket.emit("sg_room", {
+		endpoint: "register",
+		room: $("#room_input").val(),
+		name: $("#name_input").val(),
+		game: gameName
 	});
 	return false;
 }
 
 function room(data) {
 	if (data.room === false) {
-		alert('Room is closed');
+		alert("Room is closed");
 		return;
 	}
 	if (data.room !== undefined) {
@@ -174,34 +176,34 @@ function room(data) {
 	if (data.name !== undefined) {
 		if (isAdmin()) {
 			if (state.players[data.index] !== undefined) {
-				sendState('rejoined', data.name);
+				sendState("rejoined", data.name);
 			} else {
 				var player = {
 					name: data.name,
 					present: state.currentPlayer === undefined,
 					time: 0,
-					state: newState(),
+					state: newState()
 				};
 				state.players[data.index] = player;
-				sendState('joined', data.name);
+				sendState("joined", data.name);
 			}
 		}
 	} else if (data.kicked !== undefined) {
 		var player = state.players[data.kicked];
 		player.present = null;
 		if (data.kicked === state.currentPlayer) advanceTurn();
-		sendState('kicked [' + player.name + ']');
+		sendState("kicked [" + player.name + "]");
 	} else if (data.left !== undefined) {
 		var player = state.players[data.left];
 		player.present = false;
-		var message = 'left';
+		var message = "left";
 		if (!isAdmin()) {
-			message += ' and ' + me().name + ' became admin';
+			message += " and " + me().name + " became admin";
 			me().present = true;
 		}
 		sendState(message, player.name);
 	} else {
-		console.log('unknown room', data);
+		console.log("unknown room", data);
 	}
 }
 
@@ -209,38 +211,38 @@ function kick() {
 	var index = $(this).index();
 	if (index === myIndex) return;
 	var player = state.players[index];
-	if (confirm('Are you sure you want to kick ' + player.name + '?'))
-	socket.emit('sg_room', {
-		endpoint: 'kick',
-		index: index,
-	});
+	if (confirm("Are you sure you want to kick " + player.name + "?"))
+		socket.emit("sg_room", {
+			endpoint: "kick",
+			index: index
+		});
 }
 
 function lobby() {
-	$('#global_controls').appendTo('#lobby_controls_div');
-	show('#lobby');
-	show(isAdmin() ? '#lobby_host' : '#lobby_wait');
+	$("#global_controls").appendTo("#lobby_controls_div");
+	show("#lobby");
+	show(isAdmin() ? "#lobby_host" : "#lobby_wait");
 }
 
 function pull(data) {
 	if (stateHistory.length === 0) {
-		data.message = 'pulled from scratch';
+		data.message = "pulled from scratch";
 	} else {
 		var lastId = stateHistory[0].id;
-		data.message = 'pull [' + lastId + '] - ';
+		data.message = "pull [" + lastId + "] - ";
 		if (data.id > lastId) {
-			data.message += 'fixed';
+			data.message += "fixed";
 		} else if (data.id < lastId) {
-			data.message += 'uh thats weird...';
+			data.message += "uh thats weird...";
 		} else {
-			return alert('already up to date');
+			return alert("already up to date");
 		}
 	}
 	stateHelper(data);
 }
 
 function push() {
-	sendState('push');
+	sendState("push");
 }
 
 function stateF(data) {
@@ -256,32 +258,32 @@ function stateF(data) {
 }
 
 function stateHelper(data) {
-	show('#room_container');
+	show("#room_container");
 	adminIndex = data.admin;
 	state = data.state;
 	state.id = data.id;
 	logState({ id: data.id, player: data.player, message: data.message });
 
-	$('#players').empty();
+	$("#players").empty();
 	state.players.forEach(function(player, index) {
 		if (player.present !== null) {
-			$('<p>')
-				.attr('index', index)
-				.addClass('player')
+			$("<p>")
+				.attr("index", index)
+				.addClass("player")
 				.text(player.name)
-				.appendTo('#players');
+				.appendTo("#players");
 		}
 	});
-	if (isAdmin()) $('.player').click(kick);
+	if (isAdmin()) $(".player").click(kick);
 
 	basicUpdate();
 
 	if (state.currentPlayer === undefined) return lobby();
-	$('#global_controls').appendTo('#game_controls_div');
-	show('#game');
+	$("#global_controls").appendTo("#game_controls_div");
+	show("#game");
 	var currentPlayer = current();
 	if (currentPlayer !== undefined)
-		$('#current_player').text(currentPlayer.name);
+		$("#current_player").text(currentPlayer.name);
 	update();
 }
 
@@ -289,10 +291,10 @@ function race(data) {
 	var message;
 	var invalid;
 	if (data.id > state.id) {
-		message = 'Race condition - invalid';
+		message = "Race condition - invalid";
 		invalid = true;
 	} else {
-		message = 'Race condition - slow server';
+		message = "Race condition - slow server";
 		stateHistory[0].invalid = true;
 		invalid = false;
 	}
@@ -301,20 +303,19 @@ function race(data) {
 		id: data.id,
 		player: data.player,
 		message: message,
-		invalid: invalid,
+		invalid: invalid
 	});
 	for (var i = 0; i < stateHistory.length; i++) {
 		var loadState = stateHistory[i];
 		if (!loadState.invalid) {
 			state = $.extend(true, loadState.state, { id: data.id });
-			sendState(
-				'Race recover: ' + loadState.message,
-				loadState.player
-			);
+			sendState("Race recover: " + loadState.message, loadState.player);
 			return;
 		}
 	}
-	alert('Race condition, but no valid state available. This should never happen. Seek shelter.');
+	alert(
+		"Race condition, but no valid state available. This should never happen. Seek shelter."
+	);
 }
 
 function logState(obj) {
@@ -322,22 +323,22 @@ function logState(obj) {
 	if (obj.state === undefined) obj.state = $.extend(true, {}, state);
 	obj.date = new Date();
 	var text = getLogText(obj);
-	var log = $('<p>')
+	var log = $("<p>")
 		.text(text)
-		.prependTo('#log')
-		.attr('data-id', obj.id);
-	if (isAdmin()) log.addClass('admin_log').click(restore);
+		.prependTo("#log")
+		.attr("data-id", obj.id);
+	if (isAdmin()) log.addClass("admin_log").click(restore);
 }
 
 function getLogText(obj) {
-	var text = '(' + obj.id + ') ' + obj.date.toLocaleTimeString() + ' ';
-	if (obj.player !== undefined) text += '[' + obj.player + '] ';
+	var text = "(" + obj.id + ") " + obj.date.toLocaleTimeString() + " ";
+	if (obj.player !== undefined) text += "[" + obj.player + "] ";
 	text += obj.message;
 	return text;
 }
 
 function restore() {
-	var id = $(this).attr('data-id');
+	var id = $(this).attr("data-id");
 	if (id === undefined) return;
 	restoreHelper(Number.parseInt(id));
 }
@@ -348,14 +349,14 @@ function restoreHelper(id) {
 		if (loadState.id === id) {
 			state = $.extend(true, loadState.state, { id: state.id });
 			sendState(
-				'restored to [' + getLogText(loadState) + ']',
+				"restored to [" + getLogText(loadState) + "]",
 				undefined,
 				{ locked: true }
 			);
 			return;
 		}
 	}
-	alert('could not find id ' + id);
+	alert("could not find id " + id);
 }
 
 function reconnect(data) {
@@ -363,7 +364,7 @@ function reconnect(data) {
 	admin = data.admin;
 	myIndex = data.index;
 	state = data.state;
-	sendState('reconnect');
+	sendState("reconnect");
 }
 
 function isMyTurn() {
@@ -374,7 +375,11 @@ function isMyTurn() {
 }
 
 function advanceTurn() {
-	state.currentPlayer = (state.currentPlayer + 1) % state.players.length;
+	state.currentPlayer = playerByIndex(state.currentPlayer + 1);
+}
+
+function playerByIndex(index) {
+	return (index + state.players.length) % state.players.length;
 }
 
 function shuffleArray(array) {
@@ -403,7 +408,7 @@ function getJSONs(jsons) {
 
 function door() {
 	state.closed = !state.closed;
-	sendState(state.closed ? 'closed room' : 'opened room');
+	sendState(state.closed ? "closed room" : "opened room");
 }
 
 var endpoints = {
@@ -414,7 +419,7 @@ var endpoints = {
 	reconnect: reconnect,
 	refresh: refresh,
 	alert: alertF,
-	pull: pull,
+	pull: pull
 };
 
 function alertF(data) {
@@ -424,29 +429,29 @@ function alertF(data) {
 // override me
 function prepare() {
 	state.currentPlayer = null;
-	sendState('prepare');
+	sendState("prepare");
 }
 
 function basicUpdate() {
 	if (myIndex >= state.players.length) refresh();
-	$('#door').text(state.closed ? 'Open' : 'Close');
-	$('#turn_background')[isMyTurn() ? 'addClass' : 'removeClass'](
-		'active_background'
+	$("#door").text(state.closed ? "Open" : "Close");
+	$("#turn_background")[isMyTurn() ? "addClass" : "removeClass"](
+		"active_background"
 	);
 }
 
 function timeToString(time) {
 	var minutes = Math.floor(time / 1000 / 60);
 	var seconds = Math.floor(time / 1000) % 60;
-	if (seconds < 10) seconds = '0' + seconds;
-	return minutes + ':' + seconds;
+	if (seconds < 10) seconds = "0" + seconds;
+	return minutes + ":" + seconds;
 }
 
 function updateTime(index, forTick) {
 	var player = current();
 	if (player !== undefined) {
 		player.time += tick;
-		$('.player_time')
+		$(".player_time")
 			.eq(state.currentPlayer)
 			.text(timeToString(player.time));
 	}
