@@ -13,3 +13,6 @@
 [submodule "app/routes/skull"]
 	path = app/routes/skull
 	url = https://github.com/dcep93/skull.git
+[submodule "app/routes/fox"]
+	path = app/routes/fox
+	url = https://github.com/dcep93/fox.git
