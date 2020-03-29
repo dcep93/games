@@ -138,6 +138,10 @@ function sendState(message, player, extra) {
 }
 
 function receive(data) {
+	if (constants.dead) {
+		console.log("dead", data);
+		return;
+	}
 	var endpoint = data.endpoint;
 	var f = endpoints[endpoint];
 	if (f) {
@@ -246,6 +250,14 @@ function push() {
 }
 
 function stateF(data) {
+	if (constants.dead) return;
+	if (tooManyRaces()) {
+		constants.dead = true;
+		console.log(JSON.stringify(stateHistory));
+		return alert(
+			"too many race conditions - ask for help or refresh maybe"
+		);
+	}
 	if (
 		data.state.id !== undefined &&
 		stateHistory.length !== 0 &&
@@ -308,7 +320,10 @@ function race(data) {
 	for (var i = 0; i < stateHistory.length; i++) {
 		var loadState = stateHistory[i];
 		if (!loadState.invalid) {
-			state = $.extend(true, loadState.state, { id: data.id });
+			state = $.extend(true, loadState.state, {
+				id: data.id,
+				race: true
+			});
 			sendState("Race recover: " + loadState.message, loadState.player);
 			return;
 		}
@@ -316,6 +331,18 @@ function race(data) {
 	alert(
 		"Race condition, but no valid state available. This should never happen. Seek shelter."
 	);
+}
+
+function tooManyRaces() {
+	// true if 4 of last 10 states were from a race
+	var statesToLookAt = 10;
+	var maxRaceStates = 3;
+	var count = 0;
+	for (var i = 0; i < statesToLookAt; i++) {
+		if (i >= stateHistory.length) break;
+		if (stateHistory[i].race) count++;
+	}
+	return count > maxRaceStates;
 }
 
 function logState(obj) {
