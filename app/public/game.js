@@ -22,6 +22,7 @@ $(document).ready(function() {
 		socket.emit("sg_pull", {});
 	});
 	$("#push").click(push);
+	$("#disconnect").click(disconnect);
 	$("input[type=submit]").prop("disabled", false);
 	$("#register_form").submit(apply);
 	$("#lobby_host").click(prepare);
@@ -247,6 +248,11 @@ function pull(data) {
 
 function push() {
 	sendState("push");
+}
+
+function disconnect() {
+	sendState("disconnected");
+	constants.dead = true;
 }
 
 function stateF(data) {
