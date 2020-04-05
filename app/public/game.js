@@ -15,10 +15,10 @@ var debug;
 
 var tick = 100;
 
-$(document).ready(function() {
+$(document).ready(function () {
 	$("#door").click(door);
 	$("#leave").click(leave);
-	$("#pull").click(function() {
+	$("#pull").click(function () {
 		socket.emit("sg_pull", {});
 	});
 	$("#push").click(push);
@@ -35,7 +35,7 @@ function refresh() {
 
 function leave() {
 	socket.emit("sg_room", {
-		endpoint: "leave"
+		endpoint: "leave",
 	});
 }
 
@@ -46,7 +46,7 @@ function isAdmin(playerIndex) {
 
 function register(data) {
 	if (myIndex !== undefined) {
-		$.get("socket", undefined, function(data) {
+		$.get("socket", undefined, function (data) {
 			var obj = $.extend(true, { room: roomName, index: myIndex }, data);
 			state.id++;
 			if (isAdmin()) obj.state = state;
@@ -61,7 +61,7 @@ function register(data) {
 			logState({
 				state: data.original,
 				id: data.original.id,
-				message: "server restart at " + data.updated
+				message: "server restart at " + data.updated,
 			});
 		}
 		state.id = data.id;
@@ -79,14 +79,12 @@ function initState(data) {
 	state = {
 		players: [], // [{name: string, state: object}]
 		currentPlayer: undefined, // ?int
-		lastState: undefined // ?string
+		lastState: undefined, // ?string
 	};
 }
 
 function show(identifier) {
-	$(identifier)
-		.siblings()
-		.hide();
+	$(identifier).siblings().hide();
 	$(identifier).show();
 }
 
@@ -97,15 +95,15 @@ function main() {
 
 function connectSocket() {
 	$.holdReady(true);
-	$.get("socket", undefined, function(data) {
+	$.get("socket", undefined, function (data) {
 		gameName = data.game;
 		socket = io(":" + data.port, { secure: true });
-		socket.on("connect", function() {
+		socket.on("connect", function () {
 			$.holdReady(false);
 			console.log("connected");
 			socket.emit("sg_register", data);
 		});
-		socket.on("sg_reconnect", function() {
+		socket.on("sg_reconnect", function () {
 			console.log("reconnected");
 		});
 		socket.on("message", receive);
@@ -131,7 +129,7 @@ function sendState(message, player, extra) {
 				endpoint: "state",
 				state: state,
 				player: player,
-				message: message
+				message: message,
 			},
 			extra
 		)
@@ -162,7 +160,7 @@ function apply() {
 		endpoint: "register",
 		room: $("#room_input").val(),
 		name: $("#name_input").val(),
-		game: gameName
+		game: gameName,
 	});
 	return false;
 }
@@ -187,7 +185,7 @@ function room(data) {
 					name: data.name,
 					present: state.currentPlayer === undefined,
 					time: 0,
-					state: newState()
+					state: newState(),
 				};
 				state.players[data.index] = player;
 				sendState("joined", data.name);
@@ -219,7 +217,7 @@ function kick() {
 	if (confirm("Are you sure you want to kick " + player.name + "?"))
 		socket.emit("sg_room", {
 			endpoint: "kick",
-			index: index
+			index: index,
 		});
 }
 
@@ -283,7 +281,7 @@ function stateHelper(data) {
 	logState({ id: data.id, player: data.player, message: data.message });
 
 	$("#players").empty();
-	state.players.forEach(function(player, index) {
+	state.players.forEach(function (player, index) {
 		if (player.present !== null) {
 			$("<p>")
 				.attr("index", index)
@@ -321,14 +319,14 @@ function race(data) {
 		id: data.id,
 		player: data.player,
 		message: message,
-		invalid: invalid
+		invalid: invalid,
 	});
 	for (var i = 0; i < stateHistory.length; i++) {
 		var loadState = stateHistory[i];
 		if (!loadState.invalid) {
 			state = $.extend(true, loadState.state, {
 				id: data.id,
-				race: true
+				race: true,
 			});
 			sendState("Race recover: " + loadState.message, loadState.player);
 			return;
@@ -356,10 +354,7 @@ function logState(obj) {
 	if (obj.state === undefined) obj.state = $.extend(true, {}, state);
 	obj.date = new Date();
 	var text = getLogText(obj);
-	var log = $("<p>")
-		.text(text)
-		.prependTo("#log")
-		.attr("data-id", obj.id);
+	var log = $("<p>").text(text).prependTo("#log").attr("data-id", obj.id);
 	if (isAdmin()) log.addClass("admin_log").click(restore);
 }
 
@@ -427,8 +422,8 @@ function getJSONs(jsons) {
 	constants.toLoad = jsons.length;
 	for (var i = 0; i < jsons.length; i++) {
 		var json = jsons[i];
-		(function(json) {
-			$.getJSON(json.path, undefined, function(data) {
+		(function (json) {
+			$.getJSON(json.path, undefined, function (data) {
 				constants[json.name] = data;
 				if (--constants.toLoad === 0) {
 					delete constants.toLoad;
@@ -452,7 +447,7 @@ var endpoints = {
 	reconnect: reconnect,
 	refresh: refresh,
 	alert: alertF,
-	pull: pull
+	pull: pull,
 };
 
 function alertF(data) {
