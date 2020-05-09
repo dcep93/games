@@ -18,5 +18,7 @@ echo "$(date) startup" | tee -a $LOG_FILE
 
 screen -S $NAME -Dm bash -c "set -x; cd $(dirname $INDEX); if [[ -f env.sh ]]; then source env.sh; fi; nodemon --delay 1 $INDEX; sh"
 
+iptables -A PREROUTING -t nat -p tcp --dport 80 -j REDIRECT --to-ports 8080
+iptables -A PREROUTING -t nat -p tcp --dport 443 -j REDIRECT --to-ports 8080
 
 echo "$(date) success" | tee -a $LOG_FILE
